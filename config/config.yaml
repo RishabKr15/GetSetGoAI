@@ -1,0 +1,7 @@
+llm:
+  deepseek:
+    provider: "deepseek"
+    model_name: "deepseek/deepseek-chat"
+  mistral:
+    provider: "mistralai"
+    model_name: "mistral-large-latest"

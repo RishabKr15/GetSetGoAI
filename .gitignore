@@ -10,3 +10,5 @@ wheels/
 .venv
 env
 .env
+trip
+api_check.py
