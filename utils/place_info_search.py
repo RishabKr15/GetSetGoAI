@@ -12,9 +12,9 @@ class SerpAPISearchTool:
     def __init__(self, api_key: str):
         if SerpAPIWrapper is None:
             raise ImportError("SerpAPI not available. Install with: pip install google-search-results")
-        self.search_wrapper = SerpAPIWrapper(serp_api_key=api_key)
+        self.search_wrapper = SerpAPIWrapper(serpapi_api_key=api_key)
 
-    def search_attractions(self, place: str) -> dict:
+    def search_attractions(self, place: str) -> str:
         """
         Search for top attractions in and around a given place.
 
@@ -22,11 +22,11 @@ class SerpAPISearchTool:
             place (str): Location to search around.
 
         Returns:
-            dict: Result of the search.
+            str: Result of the search.
         """
         return self.search_wrapper.run(f"top attractions in and around {place}")
 
-    def search_restaurants(self, place: str) -> dict:
+    def search_restaurants(self, place: str) -> str:
         """
         Search for top restaurants in and around a given place.
 
@@ -34,11 +34,11 @@ class SerpAPISearchTool:
             place (str): Location to search around.
 
         Returns:
-            dict: Result of the search.
+            str: Result of the search.
         """
         return self.search_wrapper.run(f"top restaurants in and around {place}")
 
-    def search_hotels(self, place: str) -> dict:
+    def search_hotels(self, place: str) -> str:
         """
         Search for top hotels in and around a given place.
 
@@ -46,11 +46,11 @@ class SerpAPISearchTool:
             place (str): Location to search around.
 
         Returns:
-            dict: Result of the search.
+            str: Result of the search.
         """
         return self.search_wrapper.run(f"top hotels in and around {place}")
 
-    def search_activity(self, place: str) -> dict:
+    def search_activity(self, place: str) -> str:
         """
         Search for top activities in and around a given place.
 
@@ -58,11 +58,11 @@ class SerpAPISearchTool:
             place (str): Location to search around.
 
         Returns:
-            dict: Result of the search.
+            str: Result of the search.
         """
         return self.search_wrapper.run(f"top activities in and around {place}")
 
-    def search_transportation(self, place: str) -> dict:
+    def search_transportation(self, place: str) -> str:
         """
         Searches for available modes of transportation in and around a given place.
 
@@ -70,7 +70,7 @@ class SerpAPISearchTool:
             place (str): Location to search around.
 
         Returns:
-            dict: Result of the search.
+            str: Result of the search.
         """
         return self.search_wrapper.run(f"modes of transportation in and around {place}")
 class TavilySearchTool:
