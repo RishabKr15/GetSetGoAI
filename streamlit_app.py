@@ -1,90 +1,180 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, message='Field name "output_schema" in "TavilyResearch" shadows an attribute in parent "BaseTool"')
+warnings.filterwarnings("ignore", category=UserWarning, message='Field name "stream" in "TavilyResearch" shadows an attribute in parent "BaseTool"')
+
 import streamlit as st
 import datetime
 import requests
 import os
 import sys
+import json
 
-# Allow overriding the backend URL via env var to avoid IPv6/localhost resolution issues
-# Default to IPv4 loopback which avoids some Windows IPv6 binding quirks
+# Configuration: Default to local backend if no environment variable is set
 BASE_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
 
 # Set page configuration
 st.set_page_config(
-    page_title="Travel Agent AI",
+    page_title="GetSetGoAI | Premium Travel Concierge",
     page_icon="✈️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Page title
-st.title("✈️ Travel Agent AI")
+# Custom CSS for a premium look
+st.markdown("""
+<style>
+    .stApp {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        color: #f8fafc;
+    }
+    .main-header {
+        font-family: 'Outfit', sans-serif;
+        background: linear-gradient(to right, #60a5fa, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 3.5rem;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 0;
+    }
+    .sub-header {
+        text-align: center;
+        color: #94a3b8;
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+    }
+    .stChatMessage {
+        background: rgba(30, 41, 59, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 15px;
+        backdrop-filter: blur(10px);
+    }
+    /* Fix text color for inputs */
+    .stTextInput>div>div>input, .stNumberInput>div>div>input {
+        color: #f8fafc;
+    }
+    .stSelectbox>div>div>div {
+        color: #f8fafc;
+    }
+    h1, h2, h3, p {
+        color: #f8fafc;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# Sidebar with information
+# Page header
+st.markdown('<p class="main-header">✈️ GetSetGoAI</p>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">Your Elite Agentic Travel Concierge</p>', unsafe_allow_html=True)
+
+# Initialize session ID for persistence if not exists
+if "thread_id" not in st.session_state:
+    import uuid
+    st.session_state["thread_id"] = str(uuid.uuid4())
+
+# --- SIDEBAR: Information and Settings ---
 with st.sidebar:
-    st.header("About Travel Agent AI")
-    st.write("""
-        Ask about travel plans, destinations, or itineraries, and our AI will provide tailored suggestions.
-    """)
-    st.image("https://source.unsplash.com/300x200/?travel", caption="Explore the World")
+    st.header("🌟 Premier Services")
+    st.write(
+        "Experience the future of travel planning with our agentic intelligence."
+    )
+    
+    # Unsplash travel image for better UI
+    img_url = "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=400&q=80"
+    st.image(img_url, use_container_width=True)
+        
     st.markdown("---")
-    st.write(f"Current Time: {datetime.datetime.now().strftime('%H:%M, %d %b %Y')}")
-    st.markdown("---")
-    st.subheader("Debug")
-    st.write("Python executable:")
-    st.code(sys.executable)
-    # Backend quick check button
-    if st.button("Check backend connectivity"):
-        try:
-            r = requests.get(f"{BASE_URL}/docs", timeout=5)
-            if r.status_code == 200:
-                st.success(f"Backend reachable at {BASE_URL} (GET /docs returned 200)")
-            else:
-                st.error(f"Backend responded with status {r.status_code}")
-        except Exception as e:
-            st.error(f"Backend check failed: {e}")
+    st.write(f"🕒 {datetime.datetime.now().strftime('%H:%M, %d %b %Y')}")
 
-# Main chat interface
+    st.markdown("---")
+    st.subheader("⚙️ Preferences")
+    currency = st.selectbox("Currency Display", ["USD", "INR", "EUR", "GBP"], index=0)
+    st.session_state["currency"] = currency
+
+    auto_convert = st.checkbox("Proactive Price Conversion", value=True)
+    st.session_state["auto_convert"] = auto_convert
+
+    st.markdown("---")
+    if st.button("🔄 Reset Conversation"):
+        st.session_state.messages = []
+        st.session_state["thread_id"] = str(uuid.uuid4())
+        st.rerun()
+
+# --- MAIN INTERFACE: Chatting with the AI ---
 st.header("Chat with Your Travel Assistant")
 
-# Initialize session state for messages
+# Initialize chat history state
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Container for chat history
-with st.container():
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.write(message["content"])
+# Display history with custom avatars
+for message in st.session_state.messages:
+    avatar = "✈️" if message["role"] == "user" else "🤖"
+    with st.chat_message(message["role"], avatar=avatar):
+        st.markdown(message["content"])
 
-# Form for user input
-with st.form(key="query_form", clear_on_submit=True):
-    user_input = st.text_input("Ask about your travel plans:", placeholder="E.g., Plan a trip to Paris")
-    submit_button = st.form_submit_button("Send")
+# Trip parameters for contextual planning
+col1, col2, col3 = st.columns([1, 1, 2])
+with col1:
+    num_travelers = st.number_input("Travelers", min_value=1, value=1, step=1)
+with col2:
+    travel_month = st.selectbox(
+        "Approx. month",
+        ["Any", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    )
+with col3:
+    allow_web = st.checkbox("Allow web lookups for live info", value=True)
 
-# Handle form submission
-if submit_button and user_input.strip():
-    # Add user message to session state
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    
-    # Show a spinner while fetching the response
-    with st.spinner("Getting your travel plan (this may take up to 2 minutes on first run)..."):
-        try:
-            # Send request to FastAPI endpoint
-            response = requests.post(f"{BASE_URL}/query", json={"query": user_input}, timeout=120)
-            response.raise_for_status()
-            answer = response.json().get("answer", "No response received")
+# Modern Chat Input
+if prompt := st.chat_input("E.g., Plan a 5-day honeymoon in the Maldives"):
+    # Add user message to history and UI
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user", avatar="✈️"):
+        st.markdown(prompt)
 
-            # Add assistant response to session state
-            st.session_state.messages.append({"role": "assistant", "content": answer})
-        except requests.RequestException as e:
-            # Handle API errors and provide actionable hints
-            hint = (
-                f"Could not reach the backend at {BASE_URL}.\n"
-                "Make sure the FastAPI server is running (see README: `uvicorn main:app --host 0.0.0.0 --port 8000 --reload`).\n"
-                "If the server is running, try setting the BACKEND_URL environment variable to the proper host (e.g. http://127.0.0.1:8000) and restart Streamlit."
-            )
-            error_message = f"Error connecting to the server: {e}\n{hint}"
-            st.session_state.messages.append({"role": "assistant", "content": error_message})
-    
-    # Rerun to update the UI
-    st.rerun()
+    # Fetch Assistant Response
+    with st.chat_message("assistant", avatar="🤖"):
+        with st.spinner("Our AI is planning your trip..."):
+            try:
+                payload = {
+                    "query": prompt,
+                    "num_travelers": int(num_travelers),
+                    "travel_month": travel_month if travel_month != "Any" else None,
+                    "allow_web": bool(allow_web),
+                    "auto_convert": st.session_state.get("auto_convert", False),
+                    "target_currency": st.session_state.get("currency", "USD"),
+                    "thread_id": st.session_state.get("thread_id", "default")
+                }
+                
+                response = requests.post(f"{BASE_URL}/query", json=payload, timeout=180)
+                
+                if response.status_code == 402:
+                    st.error("💳 Agentic credits exceeded. Please top up your provider account.")
+                else:
+                    response.raise_for_status()
+                    resp_json = response.json()
+                    answer = resp_json.get("answer", "I prepared a plan for you, but could not retrieve the text.")
+                    st.markdown(answer)
+                    st.session_state.messages.append({"role": "assistant", "content": answer})
+
+            except Exception as e:
+                st.error(f"Failed to reach the travel assistant: {str(e)}")
+
+# --- EXPORT: Chat-to-PDF Functionality ---
+if st.session_state.get("messages"):
+    with st.sidebar:
+        st.markdown("---")
+        st.subheader("Export Itinerary")
+        if st.button("Export current results to PDF"):
+            # Convert history to a single markdown string
+            md_lines = [f"**{m['role'].title()}**:\n\n{m['content']}\n\n" for m in st.session_state.messages]
+            payload = {"content": "\n\n".join(md_lines), "title": "GetSetGoAI Travel Plan"}
+            try:
+                r = requests.post(f"{BASE_URL}/export_pdf", json=payload, timeout=60)
+                if r.status_code == 200:
+                    st.download_button("Download PDF", data=r.content, file_name="travel_plan.pdf", mime="application/pdf")
+                else:
+                    st.error("PDF export failed. Check backend logs.")
+            except Exception as e:
+                st.error(f"Request failed: {e}")

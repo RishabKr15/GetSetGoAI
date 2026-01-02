@@ -1,93 +1,92 @@
-## Common Development Commands
+# ✈️ GetSetGoAI: Your Agentic Travel Concierge
 
-### Environment Setup
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/RishabKr15/GetSetGoAI)
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![LangGraph](https://img.shields.io/badge/Orchestrator-LangGraph-orange.svg)](https://github.com/langchain-ai/langgraph)
+[![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
+[![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B.svg)](https://streamlit.io/)
+
+Experience the future of travel planning. **GetSetGoAI** is a premium, multi-agentic travel assistant that researches, plans, and budgets your perfect trip using real-time data.
+
+![alt text](<Screenshot (795).png>)
+
+## 🔗 Repository
+Find the latest source code and contribute here: [RishabKr15/GetSetGoAI](https://github.com/RishabKr15/GetSetGoAI)
+
+## 🌟 Key Features
+
+- **Multi-Agent Orchestration**: Powered by **LangGraph**, our agent reasons through complex requests, deciding when to search for hotels, restaurants, or weather data.
+- **Deep Research Integration**: Real-time web lookups via **Tavily Research** and **Google Search (SerpAPI)**.
+- **Data-Driven Itineraries**: Generates two distinct plans for every request:
+  - **The Classic Route**: Must-see landmarks and tourist favorites.
+  - **The Off-Beat Path**: Hidden gems and local secrets.
+- **Financial Intelligence**: Automatic currency conversion (INR, USD, EUR, etc.) and line-item budget breakdowns.
+- **Live Logistics**: Integration with weather services and location data for precise planning.
+- **Premium PDF Export**: Generate a high-quality PDF itinerary with one click.
+- **Persistence**: Remembers your conversation history across sessions using a robust threading system.
+
+---
+
+## 🚀 Quick Start
+
+### 1. Environment Setup
+We recommend using `uv` for lightning-fast dependency management:
 ```powershell
-# Install dependencies
-pip install -e .
-# Or using requirements.txt directly
+# Install dependencies using uv
+uv pip install -e .
+# Or using traditional pip
 pip install -r requirements.txt
 ```
 
-### Running the Application
-```powershell
-# Start the FastAPI backend server
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+### 2. Configuration
+Create a `.env` file in the root directory and add your API keys:
+```env
+GOOGLE_API_KEY=your_google_key
+TAVILY_API_KEY=your_tavily_key
+SERPAPI_API_KEY=your_serp_key
+EXCHANGE_API_KEY=your_currency_key
+MODEL_PROVIDER=google # or mistralai, openai, deepseek
+```
 
-# Start the Streamlit frontend (in a separate terminal)
+### 3. Run the Application
+Start the engine and the interface:
+```powershell
+# Terminal 1: Start FastAPI Backend
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+
+# Terminal 2: Start Streamlit Frontend
 streamlit run streamlit_app.py
 ```
 
-### Development and Testing
+---
+
+## 🛠️ Architecture
+
+GetSetGoAI follows a modular, tool-centric design:
+
+- **Brain (`Agent/agentic_workflow.py`)**: A LangGraph state machine that manages the "Thinking" -> "Acting" cycle.
+- **Tools (`tools/`)**: Specialized modules for Weather, Places, Currency, and Calculations.
+- **UI (`streamlit_app.py`)**: A modern, glassmorphic chat interface for high-end user experience.
+- **API (`main.py`)**: A clean RESTful backbone for cross-platform expansion.
+
+For a deeper dive into how the agent thinks, see [Concepts Guide](docs/concepts.md).
+
+---
+
+## 🧪 Development
+
+### Adding a New Tool
+1. Create a class in `tools/` following the existing pattern.
+2. Register the tool in `Agent/agentic_workflow.py`.
+3. Update the `SYSTEM_PROMPT` in `prompt_library/prompt.py` if specific instructions are needed.
+
+### Running Tests
 ```powershell
-# Run a single test file
-pytest tests/test_specific_file.py
-
-# Run tests with verbose output
 pytest -v
-
-# Check code formatting
-black . --check
-
-# Format code
-black .
-
-# Install in editable mode for development
-pip install -e .
 ```
 
-## Architecture Overview
+---
 
-This is a **LangGraph-based AI Travel Agent** that provides comprehensive trip planning with real-time data integration. The application uses a multi-agent workflow architecture with specialized tools for different travel-related tasks.
-
-### Core Architecture Components
-
-**Agent Workflow System (`Agent/agentic_workflow.py`)**
-- Built on LangGraph with StateGraph for workflow orchestration
-- Uses MessagesState for maintaining conversation context
-- Implements a reactive agent pattern with conditional edges between agent and tools
-- Supports multiple LLM providers (DeepSeek, MistralAI) through configurable model loading
-
-**Tool-Based Architecture**
-The system uses specialized tool classes that follow a consistent pattern:
-- Each tool class initializes its respective service and exposes LangChain @tool decorated functions
-- Tools are aggregated in the GraphBuilder and bound to the LLM for function calling
-- Tool categories: Weather (`weather_info_tool.py`), Location Search (`place_search_tool.py`), Currency Conversion (`currency_converter_tool.py`), Arithmetic Operations (`arithematic_operations_tool.py`)
-
-**Multi-Interface Deployment**
-- **FastAPI Backend** (`main.py`): REST API endpoint (`/query`) that accepts travel queries and returns structured responses
-- **Streamlit Frontend** (`streamlit_app.py`): Interactive web UI with chat interface and session management
-- Both interfaces communicate through the same GraphBuilder agent workflow
-
-**Configuration Management**
-- YAML-based configuration (`config/config.yaml`) for LLM provider settings
-- Environment-based API key management through `.env` files
-- Modular config loading through `utils/config_loader.py`
-
-### Key Architectural Patterns
-
-**Tool Integration Pattern**: Tools are self-contained classes that expose their functionality through LangChain tool decorators, making them easily discoverable and callable by the LLM agent.
-
-**State Management**: Uses LangGraph's MessagesState for maintaining conversation history and context across tool calls and agent responses.
-
-**Model Abstraction**: The `ModelLoader` class abstracts different LLM providers behind a common interface, allowing easy switching between DeepSeek and MistralAI models.
-
-**Dual Interface Architecture**: The same agent workflow powers both programmatic API access (FastAPI) and user-friendly web interface (Streamlit), demonstrating separation of concerns.
-
-## Project-Specific Guidelines
-
-### Adding New Tools
-1. Create a new tool class in `tools/` following the existing pattern
-2. Implement `_setup_tools()` method returning a list of @tool decorated functions
-3. Add the tool to `GraphBuilder` initialization and tool aggregation
-4. Ensure proper error handling and API key management
-
-### LLM Provider Configuration
-- Add new providers in `utils/model_loaders.py` following the existing pattern
-- Update `config/config.yaml` with provider-specific settings
-- Ensure API keys are loaded from environment variables
-
-### System Prompt Modifications
-The travel agent behavior is controlled by `SYSTEM_PROMPT` in `prompt_library/prompt.py`. This defines the agent's persona and response format requirements (comprehensive travel plans with cost breakdowns, weather info, etc.).
-
-### Graph Visualization
-The system automatically generates Mermaid graph visualizations of the workflow when processing queries, saved as `graph.png` in the current working directory.
+## 📜 License
+Developed for elite travelers. All rights reserved. 
+© 2026 [Rishabh Kumar](https://github.com/RishabKr15)

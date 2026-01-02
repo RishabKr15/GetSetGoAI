@@ -1,51 +1,82 @@
 import os
 from dotenv import load_dotenv
-from typing import Literal,Optional,Any
+from typing import Literal, Optional, Any
 from pydantic import BaseModel, Field
-from langchain_mistralai import ChatMistralAI
-from langchain_openai import ChatOpenAI
+from langchain.chat_models import init_chat_model # Universal factory
+from langchain_groq import ChatGroq
 from utils.config_loader import load_config
 
 load_dotenv()
+
 class ConfigLoader:
     def __init__(self):
-        print("loading config....")
         self.config = load_config()
         
     def __getitem__(self, key):
         return self.config[key]
-    
 
 class ModelLoader(BaseModel):
-    model_provider: Literal["mistralai", "deepseek",] = "deepseek"
-    config : Optional[ConfigLoader] = Field(default=None,exclude=True)
+    # Support any string, but default to 'google' for your current needs
+    model_provider: str = "google" 
+    config: Optional[ConfigLoader] = Field(default=None, exclude=True)
     
-    def model_post_init (self, __context: Any) -> None:
+    def model_post_init(self, __context: Any) -> None:
         self.config = ConfigLoader()
         
     model_config = {"arbitrary_types_allowed": True}
         
+    # In model_loader.py
     def load_llm(self):
-        """
-        Load the llm model
-        """
-        print("Loading LLM model")
-        print("Model provider:", self.model_provider)
-        if self.model_provider == "mistralai":
-            mistral_api_key = os.getenv("OPENAI_API_KEY")
-            model_name = self.config['llm']["mistral"]["model_name"]
-            llm = ChatMistralAI(model_name=model_name, mistral_api_key=mistral_api_key)
-        elif self.model_provider == "deepseek":
-            openai_api_key = os.getenv("OPENAI_API_KEY")
-            model_name = self.config['llm']["deepseek"]["model_name"]
-            # Using OpenRouter for DeepSeek
-            llm = ChatOpenAI(
-                model=model_name, 
-                api_key=openai_api_key,
-                base_url="https://openrouter.ai/api/v1",
-                max_tokens=2000  # Stay within credit limits
-            )
-        
-        return llm
+        print(f"--- Loading LLM Provider: {self.model_provider} ---")
+        try:
+            if not self.config:
+                 self.config = ConfigLoader()
+                 
+            model_cfg = self.config['llm'].get(self.model_provider)
+            if not model_cfg:
+                print(f"⚠️ Provider '{self.model_provider}' not found in config.yaml. Falling back to 'google'.")
+                self.model_provider = "google"
+                model_cfg = self.config['llm']['google']
+
+            model_name = model_cfg.get("model_name")
+            provider = model_cfg.get("provider")
+
+            # Extract OpenRouter base_url if defined in config, else use None
+            base_url = model_cfg.get("base_url")
+
+            kwargs = {
+                "model": model_name,
+                "model_provider": provider,
+                "temperature": 0.1,
+                "max_tokens": 2000,
+            }
+            if base_url:
+                kwargs["base_url"] = base_url
+
+            # Map specific providers to their env vars if using generic clients
+            if self.model_provider == "deepseek":
+                 kwargs["api_key"] = os.getenv("DEEPSEEK_API_KEY")
+            elif self.model_provider == "mistral":
+                 kwargs["api_key"] = os.getenv("MISTRAL_API_KEY")
+
+            if self.model_provider == "groq":
+                 api_key = os.getenv("GROQ_API_KEY")
+                 if not api_key:
+                     raise ValueError("GROQ_API_KEY not found in environment variables.")
+                 from langchain_groq import ChatGroq
+                 return ChatGroq(
+                     model=model_name, 
+                     api_key=api_key,
+                     temperature=0.0,
+                     max_retries=5,
+                 )
             
-        
+            llm = init_chat_model(**kwargs)
+
+            return llm
+
+        except KeyError:
+            raise ValueError(f"Provider '{self.model_provider}' not found in config.yaml")
+        except Exception as e:
+            print(f"Error loading model: {e}")
+            raise

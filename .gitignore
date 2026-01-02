@@ -12,3 +12,8 @@ env
 .env
 trip
 api_check.py
+
+# Generated files
+server_debug.log
+graph.png
+*.log

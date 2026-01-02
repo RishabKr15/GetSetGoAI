@@ -1,7 +1,14 @@
 llm:
+  google:
+    provider: "google_genai"
+    model_name: "gemini-2.5-flash"
   deepseek:
-    provider: "deepseek"
-    model_name: "deepseek/deepseek-chat"
+    provider: "openai" # DeepSeek is OpenAI-compatible
+    base_url: "https://api.deepseek.com"
+    model_name: "deepseek-chat"
   mistral:
     provider: "mistralai"
     model_name: "mistral-large-latest"
+  groq:
+    provider: "groq"
+    model_name: "llama-3.3-70b-versatile"

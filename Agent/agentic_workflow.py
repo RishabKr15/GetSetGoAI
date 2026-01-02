@@ -3,10 +3,21 @@ from tools.weather_info_tool import WeatherInfoTool
 from tools.place_search_tool import LocationInfoTool
 from tools.currency_converter_tool import CurrencyConverterTool
 from tools.arithematic_operations_tool import ArithematicOperationsTool
-from langgraph.graph import StateGraph, MessagesState,START,END
+from tools.expense_calculator_tool import CalculatorTool
+from langgraph.graph import StateGraph, MessagesState, START, END
+from typing import Any, Dict, Optional, TypedDict
+from langchain_core.messages import AIMessage
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 from prompt_library.prompt import SYSTEM_PROMPT
+import json
+import re
+import logging
+
+logger = logging.getLogger(__name__)
+
+class AgentState(MessagesState):
+    structured: Optional[Dict[str, Any]]
 
 class GraphBuilder():
     def __init__(self, model_provider :str ="deepseek"):
@@ -17,35 +28,69 @@ class GraphBuilder():
         self.currency_tools = CurrencyConverterTool()
         self.location_tools = LocationInfoTool()
         self.arithmetic_tools = ArithematicOperationsTool()
+        self.expense_tools = CalculatorTool()
         
         self.tools.extend([
-            * self.weather_tools.weather_tools_list,
-            * self.location_tools.place_search_tools_list,
-            * self.arithmetic_tools.calculater_tools_list,
-            * self.currency_tools.currency_tools_list 
+            *self.weather_tools.weather_tools_list,
+            *self.location_tools.place_search_tools_list,
+            *self.arithmetic_tools.calculater_tools_list,
+            *self.currency_tools.currency_tools_list,
+            *self.expense_tools.calculator_tool_list
         ])
         
-        self.llm_with_tools = self.llm.bind_tools(self.tools)
-        
+        # Using parallel_tool_calls=False for higher reliability with Groq/Llama
+        self.llm_with_tools = self.llm.bind_tools(self.tools, parallel_tool_calls=False)
         self.system_prompt = SYSTEM_PROMPT
 
-    
-    def agent_function(self, state: MessagesState):
+    def agent_function(self, state: AgentState) -> Dict[str, Any]:
+        """
+        Processes the current state, invokes the LLM with tools, 
+        and extracts any structured JSON payload.
+        """
+        input_messages = state.get('messages', [])
         
-        """
-        This function will be used to build the agent node in the graph. It
-        receives a message and a state as input and returns a new state and
-        a message as output. The function will be called by the graph engine
-        when the agent node is reached in the graph.
-        """
-        user_question = state['messages']
-        input_question = [self.system_prompt] + user_question
-        response = self.llm_with_tools.invoke(input_question)
-        return {"messages": [response]}
+        # --- HISTORY SANITIZATION ---
+        # Filter out any message containing hallucinated tags to prevent 'copycat' errors
+        messages = [self.system_prompt]
+        for msg in input_messages:
+            content = getattr(msg, 'content', "")
+            if isinstance(content, str):
+                if "<function" in content or "tool_use_failed" in content or "failed_generation" in content:
+                    logger.info("Sanitizing history: removing message with suspected malformed content")
+                    continue
+            messages.append(msg)
+
+        try:
+            # Invoke LLM
+            response = self.llm_with_tools.invoke(messages)
+            
+            # Robust content extraction
+            content = getattr(response, 'content', "")
+            text = str(content) if not isinstance(content, list) else " ".join([str(c) for c in content])
+
+            # Look for JSON block
+            structured = None
+            try:
+                json_blocks = re.findall(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
+                if json_blocks:
+                    structured = json.loads(json_blocks[-1])
+            except Exception:
+                pass
+
+            return {"messages": [response], "structured": structured} if structured else {"messages": [response]}
+
+        except Exception as e:
+            logger.exception("Agent node execution failed: %s", e)
+            friendly_msg = "I encountered a technical issue while processing your request. Please try again or rephrase your query."
+            if "400" in str(e) and "tool_use_failed" in str(e):
+                 friendly_msg = "I had trouble using my research tools correctly. I'm resetting my approach."
+            
+            error_msg = AIMessage(content=friendly_msg)
+            return {"messages": [error_msg]}
     
     def build_graph(self):
         memory = MemorySaver()
-        graph_builder = StateGraph(MessagesState)
+        graph_builder = StateGraph(AgentState)
         graph_builder.add_node("agent",self.agent_function)
         graph_builder.add_node("tools",ToolNode(tools=self.tools))
         graph_builder.add_edge(START,"agent")
@@ -53,8 +98,5 @@ class GraphBuilder():
         graph_builder.add_edge("tools","agent")
         return graph_builder.compile(checkpointer=memory)
         
-    
     def __call__(self):
         return self.build_graph()
-    
-    

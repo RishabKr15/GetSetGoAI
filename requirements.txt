@@ -15,3 +15,8 @@ langchain_deepseek
 langgraph
 langchain_mistralai
 google-search-results
+google-cloud-aiplatform
+google-auth
+langchain-google-genai
+google-genai
+reportlab

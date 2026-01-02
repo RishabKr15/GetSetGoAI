@@ -17,7 +17,12 @@ class CurrencyConverterTool:
         @tool
         def convert_currency(amount: float,from_currency: str, to_currency: str):
             """convert amount from one currency to another"""
-            return self.currency_service.convert(amount,from_currency, to_currency)
+            try:
+                result = self.currency_service.convert(amount, from_currency, to_currency)
+                return result
+            except Exception as e:
+                # Return a readable error message instead of crashing
+                return f"Currency conversion failed: {e}"
             
         return [convert_currency]
 

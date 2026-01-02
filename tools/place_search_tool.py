@@ -43,6 +43,8 @@ class LocationInfoTool:
             """Search for top hotels in and around a given place"""
             if self.serp_tool:
                 return self.serp_tool.search_hotels(place)
+            elif self.tavily_tool:
+                return self.tavily_tool.tavily_search_hotels(place)
             return "No search API available"
             
         @tool
