@@ -19,9 +19,9 @@ def get_requirements()->List[str]:
 print(get_requirements())
 
 setup(
-    name='trip_planner',
+    name='GetSetGoAI',
     version='0.0.1',
-    author="talk2pankajx",
+    author="Rishabhkr15",
     packages=find_packages(),
     install_requires=get_requirements()
 )
