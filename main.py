@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse, Response
 
 from tools.place_search_tool import LocationInfoTool
 from Agent.agentic_workflow import GraphBuilder
+from exception.exceptions import ProviderAPIError
 
 load_dotenv()
 
@@ -30,7 +31,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+from exception.exception_handler import register_exception_handlers
+
 app = FastAPI()
+register_exception_handlers(app)
 
 class QueryRequest(BaseModel):
     query: str
@@ -113,13 +117,9 @@ async def query_travel_agent(query: QueryRequest):
         return {"answer": final_output}
 
     except Exception as e:
-        logger.exception("Error in /query")
-        # Handle OpenRouter Credit Issues (402)
-        # Handle OpenRouter Credit Issues (402)
         if "402" in str(e):
-             # return JSONResponse(status_code=402, content={"error": "Insufficient Credits on OpenRouter."})
-             return JSONResponse(status_code=402, content={"error": f"Provider API Error: {str(e)}"})
-        return JSONResponse(status_code=500, content={"error": str(e)})
+            raise ProviderAPIError(str(e), status_code=402)
+        raise e
 
 # PDF and Test endpoints
 @app.get("/test")
