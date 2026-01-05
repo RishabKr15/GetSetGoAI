@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple test script to verify the AI Trip Planner application works
+Simple test script to verify the GetSetGoAI application works
 """
 import os
 from dotenv import load_dotenv
