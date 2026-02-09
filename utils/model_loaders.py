@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 from typing import Literal, Optional, Any
 from pydantic import BaseModel, Field
 from langchain.chat_models import init_chat_model # Universal factory
-from langchain_groq import ChatGroq
 from utils.config_loader import load_config
 
 load_dotenv()
