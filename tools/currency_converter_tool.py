@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+from langchain_core.tools import tool
+from typing import List
+from utils.currency_converter import CurrencyConverter
 from langchain_core.runnables import RunnableConfig
 
 class CurrencyConverterTool:

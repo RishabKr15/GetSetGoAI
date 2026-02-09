@@ -2,6 +2,7 @@ services:
   # --- Backend: FastAPI Service ---
   - type: web
     name: getsetgo-backend
+    id: backend
     env: python
     plan: free
     region: oregon
@@ -9,8 +10,12 @@ services:
     startCommand: .venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:10000
     envVars:
       - key: MODEL_PROVIDER
-        value: google
+        value: groq
+      - key: GROQ_API_KEY
+        sync: false
       - key: GOOGLE_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
         sync: false
       - key: TAVILY_API_KEY
         sync: false
@@ -24,6 +29,7 @@ services:
   # --- Frontend: Streamlit Service ---
   - type: web
     name: getsetgo-frontend
+    id: frontend
     env: python
     plan: free
     region: oregon

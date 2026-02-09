@@ -1,3 +1,7 @@
+import os
+from typing import List
+from dotenv import load_dotenv
+from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 
 class WeatherInfoTool():
