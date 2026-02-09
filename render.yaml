@@ -3,33 +3,32 @@ services:
   - type: web
     name: getsetgo-backend
     env: python
-    buildCommand: pip install -r requirements.txt && pip install .
-    startCommand: uvicorn main:app --host 0.0.0.0 --port 8000
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
     envVars:
       - key: MODEL_PROVIDER
         value: google
       - key: GOOGLE_API_KEY
         sync: false
-        description: "Default Google AI Key. LEAVE BLANK to use 'Bring Your Own Key' in the app UI."
       - key: TAVILY_API_KEY
         sync: false
-        description: "Default Tavily Key. LEAVE BLANK to use 'Bring Your Own Key' in the app UI."
       - key: WEATHER_API_KEY
         sync: false
-        description: "Default Weather Key. LEAVE BLANK to use 'Bring Your Own Key' in the app UI."
       - key: EXCHANGE_API_KEY
         sync: false
-        description: "Default Currency Key. LEAVE BLANK to use 'Bring Your Own Key' in the app UI."
       - key: SERPAPI_API_KEY
         sync: false
-        description: "Optional: Default SerpAPI Key. LEAVE BLANK for BYOK."
 
   # --- Frontend: Streamlit Service ---
   - type: web
     name: getsetgo-frontend
     env: python
+    plan: free
+    region: oregon
     buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+    startCommand: streamlit run streamlit_app.py --server.port 10000 --server.address 0.0.0.0
     envVars:
       - key: BACKEND_URL
-        value: http://getsetgo-backend:8000
+        value: http://getsetgo-backend:10000
