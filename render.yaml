@@ -2,8 +2,10 @@ version: 1
 services:
   # --- Backend: FastAPI Service ---
   - type: web
-    name: getsetgo-backend-v2
+    name: getsetgo-backend-v3
+    id: backend_v3
     env: python
+    region: oregon
     plan: free
     buildCommand: pip install uv && uv sync
     startCommand: .venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:10000
@@ -21,11 +23,13 @@ services:
 
   # --- Frontend: Streamlit Service ---
   - type: web
-    name: getsetgo-frontend-v2
+    name: getsetgo-frontend-v3
+    id: frontend_v3
     env: python
+    region: oregon
     plan: free
     buildCommand: pip install uv && uv sync
     startCommand: .venv/bin/python -m streamlit run streamlit_app.py --server.port 10000 --server.address 0.0.0.0
     envVars:
       - key: BACKEND_URL
-        value: http://getsetgo-backend-v2:10000
+        value: http://getsetgo-backend-v3:10000
