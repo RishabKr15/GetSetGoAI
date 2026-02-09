@@ -3,7 +3,6 @@ services:
   # --- Backend: FastAPI Service ---
   - type: web
     name: getsetgo-backend-v3
-    id: backend_v3
     env: python
     region: oregon
     plan: free
@@ -24,7 +23,6 @@ services:
   # --- Frontend: Streamlit Service ---
   - type: web
     name: getsetgo-frontend-v3
-    id: frontend_v3
     env: python
     region: oregon
     plan: free
