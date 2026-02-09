@@ -5,6 +5,7 @@
 [![LangGraph](https://img.shields.io/badge/Orchestrator-LangGraph-orange.svg)](https://github.com/langchain-ai/langgraph)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 [![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B.svg)](https://streamlit.io/)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/RishabKr15/GetSetGoAI)
 
 Experience the future of travel planning. **GetSetGoAI** is a premium, multi-agentic travel assistant that researches, plans, and budgets your perfect trip using real-time data.
 
@@ -16,6 +17,8 @@ Find the latest source code and contribute here: [RishabKr15/GetSetGoAI](https:/
 ## 🌟 Key Features
 
 - **Multi-Agent Orchestration**: Powered by **LangGraph**, our agent reasons through complex requests, deciding when to search for hotels, restaurants, or weather data.
+- **Cost-Managed BYOK Architecture**: Supports a "Bring Your Own Key" model where visitors can provide their own API keys via the UI, ensuring zero costs for the host.
+- **High-Concurrency Backbone**: A fully non-blocking I/O layer built with **FastAPI** and **httpx** for massive throughput.
 - **Deep Research Integration**: Real-time web lookups via **Tavily Research** and **Google Search (SerpAPI)**.
 - **Data-Driven Itineraries**: Generates two distinct plans for every request:
   - **The Classic Route**: Must-see landmarks and tourist favorites.
@@ -64,10 +67,10 @@ streamlit run streamlit_app.py
 
 GetSetGoAI follows a modular, tool-centric design:
 
-- **Brain (`Agent/agentic_workflow.py`)**: A LangGraph state machine that manages the "Thinking" -> "Acting" cycle.
-- **Tools (`tools/`)**: Specialized modules for Weather, Places, Currency, and Calculations.
+- **Brain (`Agent/agentic_workflow.py`)**: A state-driven LangGraph orchestrator that manages the "Thinking" -> "Acting" cycle.
+- **Tools (`tools/`)**: Specialized, non-blocking modules for Weather, Places, Currency, and Calculations.
 - **UI (`streamlit_app.py`)**: A modern, glassmorphic chat interface for high-end user experience.
-- **API (`main.py`)**: A clean RESTful backbone for cross-platform expansion.
+- **API (`main.py`)**: A high-performance, non-blocking RESTful gateway.
 
 For a deeper dive into how the agent thinks, see [Concepts Guide](docs/concepts.md).
 

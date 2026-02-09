@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 class AgentState(MessagesState):
     structured: Optional[Dict[str, Any]]
+    api_keys: Optional[Dict[str, str]]
+
+from langchain_core.runnables import RunnableConfig
 
 class GraphBuilder():
     def __init__(self, model_provider :str ="deepseek"):
@@ -42,7 +45,7 @@ class GraphBuilder():
         self.llm_with_tools = self.llm.bind_tools(self.tools, parallel_tool_calls=False)
         self.system_prompt = SYSTEM_PROMPT
 
-    def agent_function(self, state: AgentState) -> Dict[str, Any]:
+    async def agent_function(self, state: AgentState, config: RunnableConfig) -> Dict[str, Any]:
         """
         Processes the current state, invokes the LLM with tools, 
         and extracts any structured JSON payload.
@@ -61,8 +64,19 @@ class GraphBuilder():
             messages.append(msg)
 
         try:
-            # Invoke LLM
-            response = self.llm_with_tools.invoke(messages)
+            # BYOK: Check for custom Google key
+            api_keys = config.get("configurable", {}).get("api_keys", {})
+            google_key = api_keys.get("google_api_key")
+            
+            # Use specific LLM if key provided, otherwise use default
+            current_llm = self.llm_with_tools
+            if google_key:
+                logger.info("Using user-provided Google API key for this request")
+                custom_llm = self.model_loader.load_llm(api_key=google_key)
+                current_llm = custom_llm.bind_tools(self.tools, parallel_tool_calls=False)
+
+            # Invoke LLM asynchronously
+            response = await current_llm.ainvoke(messages)
             
             # Robust content extraction
             content = getattr(response, 'content', "")
@@ -91,11 +105,11 @@ class GraphBuilder():
     def build_graph(self):
         memory = MemorySaver()
         graph_builder = StateGraph(AgentState)
-        graph_builder.add_node("agent",self.agent_function)
-        graph_builder.add_node("tools",ToolNode(tools=self.tools))
-        graph_builder.add_edge(START,"agent")
-        graph_builder.add_conditional_edges("agent",tools_condition)
-        graph_builder.add_edge("tools","agent")
+        graph_builder.add_node("agent", self.agent_function)
+        graph_builder.add_node("tools", ToolNode(tools=self.tools))
+        graph_builder.add_edge(START, "agent")
+        graph_builder.add_conditional_edges("agent", tools_condition)
+        graph_builder.add_edge("tools", "agent")
         return graph_builder.compile(checkpointer=memory)
         
     def __call__(self):

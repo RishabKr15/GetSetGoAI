@@ -88,6 +88,22 @@ with st.sidebar:
     st.write(f"🕒 {datetime.datetime.now().strftime('%H:%M, %d %b %Y')}")
 
     st.markdown("---")
+    st.subheader("🔑 API Configuration")
+    st.info("Enter your own keys to run the concierge under your provider account.")
+    
+    google_key = st.text_input("Google AI (Gemini) Key", type="password", help="Get it: https://aistudio.google.com/")
+    tavily_key = st.text_input("Tavily Search Key", type="password", help="Get it: https://tavily.com/")
+    weather_key = st.text_input("OpenWeatherMap Key", type="password", help="Get it: https://openweathermap.org/api")
+    exchange_key = st.text_input("ExchangeRate-API Key", type="password", help="Get it: https://www.exchangerate-api.com/")
+    serp_key = st.text_input("SerpAPI Key (Optional)", type="password", help="Get it: https://serpapi.com/")
+
+    st.session_state["google_key"] = google_key
+    st.session_state["tavily_key"] = tavily_key
+    st.session_state["weather_key"] = weather_key
+    st.session_state["exchange_key"] = exchange_key
+    st.session_state["serp_key"] = serp_key
+
+    st.markdown("---")
     st.subheader("⚙️ Preferences")
     currency = st.selectbox("Currency Display", ["USD", "INR", "EUR", "GBP"], index=0)
     st.session_state["currency"] = currency
@@ -144,7 +160,13 @@ if prompt := st.chat_input("E.g., Plan a 5-day honeymoon in the Maldives"):
                     "allow_web": bool(allow_web),
                     "auto_convert": st.session_state.get("auto_convert", False),
                     "target_currency": st.session_state.get("currency", "USD"),
-                    "thread_id": st.session_state.get("thread_id", "default")
+                    "thread_id": st.session_state.get("thread_id", "default"),
+                    # Pass user-provided keys
+                    "google_api_key": st.session_state.get("google_key"),
+                    "tavily_api_key": st.session_state.get("tavily_key"),
+                    "weather_api_key": st.session_state.get("weather_key"),
+                    "exchange_api_key": st.session_state.get("exchange_key"),
+                    "serp_api_key": st.session_state.get("serp_key")
                 }
                 
                 response = requests.post(f"{BASE_URL}/query", json=payload, timeout=180)
@@ -178,3 +200,16 @@ if st.session_state.get("messages"):
                     st.error("PDF export failed. Check backend logs.")
             except Exception as e:
                 st.error(f"Request failed: {e}")
+
+# Footer attribution in sidebar
+with st.sidebar:
+    st.markdown("---")
+    st.markdown(
+        """
+        <div style='text-align: center; color: #94a3b8; font-size: 0.8rem;'>
+            Developed by <b>Rishabh Kumar</b><br>
+            © 2026 GetSetGoAI Project
+        </div>
+        """,
+        unsafe_allow_html=True
+    )

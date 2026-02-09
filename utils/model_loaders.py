@@ -26,7 +26,7 @@ class ModelLoader(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
         
     # In model_loader.py
-    def load_llm(self):
+    def load_llm(self, api_key: Optional[str] = None):
         print(f"--- Loading LLM Provider: {self.model_provider} ---")
         try:
             if not self.config:
@@ -60,7 +60,7 @@ class ModelLoader(BaseModel):
                  kwargs["api_key"] = os.getenv("MISTRAL_API_KEY")
 
             if self.model_provider == "groq":
-                 api_key = os.getenv("GROQ_API_KEY")
+                 api_key = api_key or os.getenv("GROQ_API_KEY")
                  if not api_key:
                      raise ValueError("GROQ_API_KEY not found in environment variables.")
                  from langchain_groq import ChatGroq
@@ -71,6 +71,10 @@ class ModelLoader(BaseModel):
                      max_retries=5,
                  )
             
+            # For other providers via init_chat_model
+            if api_key:
+                kwargs["api_key"] = api_key
+                
             llm = init_chat_model(**kwargs)
 
             return llm

@@ -45,6 +45,12 @@ class QueryRequest(BaseModel):
     target_currency: Optional[str] = None
     include_web_results: Optional[bool] = False
     thread_id: Optional[str] = "default"
+    # User-provided API keys (BYOK)
+    google_api_key: Optional[str] = None
+    tavily_api_key: Optional[str] = None
+    weather_api_key: Optional[str] = None
+    exchange_api_key: Optional[str] = None
+    serp_api_key: Optional[str] = None
 
 @app.on_event("startup")
 def startup_event():
@@ -65,6 +71,15 @@ async def query_travel_agent(query: QueryRequest):
             app.state.graph_builder = GraphBuilder(model_provider=provider)
             react_app = app.state.graph_builder()
 
+        # BYOK: Collect keys from request
+        api_keys = {
+            "google_api_key": query.google_api_key,
+            "tavily_api_key": query.tavily_api_key,
+            "weather_api_key": query.weather_api_key,
+            "exchange_api_key": query.exchange_api_key,
+            "serp_api_key": query.serp_api_key
+        }
+
         metadata = (
             f"Trip Context: Travelers: {query.num_travelers}, "
             f"Month: {query.travel_month if query.travel_month else 'any month'}, "
@@ -72,13 +87,13 @@ async def query_travel_agent(query: QueryRequest):
         )
         if query.auto_convert:
             metadata += " IMPORTANT: Please proactively convert all costs and budgets to the Preferred Currency using your tools."
-        messages = {"messages": [("user", metadata), ("user", query.query)]}
+        messages = {"messages": [("user", metadata), ("user", query.query)], "api_keys": api_keys}
         
         # Persistence check
-        config = {"configurable": {"thread_id": query.thread_id}}
+        config = {"configurable": {"thread_id": query.thread_id, "api_keys": api_keys}}
         
-        # Invoke the graph
-        output = react_app.invoke(messages, config=config)
+        # Invoke the graph asynchronously
+        output = await react_app.ainvoke(messages, config=config)
         
         # --- ROBUST OUTPUT PARSING ---
         final_output = ""

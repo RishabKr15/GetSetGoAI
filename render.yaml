@@ -1,0 +1,41 @@
+services:
+  # --- Backend: FastAPI Service ---
+  - type: web
+    name: getsetgo-backend
+    env: python
+    buildCommand: pip install -r requirements.txt && pip install .
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 8000
+    envVars:
+      - key: MODEL_PROVIDER
+        value: google
+      - key: GOOGLE_API_KEY
+        sync: false
+        description: "Your Google AI Studio API Key (Get it: https://aistudio.google.com/)"
+      - key: TAVILY_API_KEY
+        sync: false
+        description: "Your Tavily Search API Key (Get it: https://tavily.com/)"
+      - key: WEATHER_API_KEY
+        sync: false
+        description: "Your OpenWeatherMap API Key (Get it: https://openweathermap.org/api)"
+      - key: EXCHANGE_API_KEY
+        sync: false
+        description: "Your ExchangeRate-API Key (Get it: https://www.exchangerate-api.com/)"
+      - key: SERPAPI_API_KEY
+        sync: false
+        description: "Optional: Your SerpAPI Key for better search (Get it: https://serpapi.com/)"
+
+  # --- Frontend: Streamlit Service ---
+  - type: web
+    name: getsetgo-frontend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          name: getsetgo-backend
+          type: web
+          property: host
+        # Note: Render usually uses internal network for same-blueprint services.
+        # But for Streamlit (client-side calls), we often need the external URL.
+        # If Streamlit calls Backend via 'requests', 'host' works.

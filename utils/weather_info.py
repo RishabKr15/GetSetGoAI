@@ -1,4 +1,4 @@
-import requests
+import httpx
 import os
 
 class WeatherInfoTool:
@@ -6,29 +6,31 @@ class WeatherInfoTool:
         self.api_key = api_key or os.getenv("WEATHER_API_KEY")
         self.base_url = "http://api.openweathermap.org/data/2.5/"
 
-    def get_weather(self, city):
+    async def get_weather(self, city: str, api_key: str = None):
         try:
             params = {
-                "appid": self.api_key,
+                "appid": api_key or self.api_key,
                 "q": city,
                 "units": "metric"
             }
-            response = requests.get(f"{self.base_url}weather", params=params)
-            response.raise_for_status()
-            return response.json()
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"{self.base_url}weather", params=params)
+                response.raise_for_status()
+                return response.json()
         except Exception as e:
             return {"error": str(e)}
 
-    def get_weather_forecast(self, city):
+    async def get_weather_forecast(self, city: str, api_key: str = None):
         try:
             params = {
-                "appid": self.api_key,
+                "appid": api_key or self.api_key,
                 "q": city,
                 "cnt": 40,  # 5 days * 8 (3-hour intervals)
                 "units": "metric"
             }
-            response = requests.get(f"{self.base_url}forecast", params=params)
-            response.raise_for_status()
-            return response.json()
+            async with httpx.AsyncClient() as client:
+                response = await client.get(f"{self.base_url}forecast", params=params)
+                response.raise_for_status()
+                return response.json()
         except Exception as e:
             return {"error": str(e)}

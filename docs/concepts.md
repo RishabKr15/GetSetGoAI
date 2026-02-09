@@ -18,20 +18,19 @@ GetSetGoAI remembers the context of your trip across multiple messages.
 - **Thread Management**: Each user session is tracked by a `thread_id`.
 - **Checkpointing**: Every state of the conversation is saved. If the agent finds a hotel in message 1, and you ask "Is there a pool?" in message 2, it knows exactly which hotel you are talking about.
 
-## 4. Dual-Interface Synergy
-The core agent logic is decoupled from the UI.
-- **FastAPI**: Serves as the "Logic API". It can power mobile apps, websites, or CLI tools.
-- **Streamlit**: Provides a "Premium Visual Interface" that renders the agent's markdown output with high-end styling.
+## 4. High-Concurrency Non-Blocking Backbone
+The entire I/O layer of GetSetGoAI is built on a **Non-Blocking Architecture**.
+- **Yielding the Event Loop**: We use `httpx.AsyncClient` instead of `requests`. When the agent queries weather or search data, the event loop is yielded, allowing the server to handle other concurrent requests.
+- **Efficient Workflow Orchestration**: The LangGraph workflow ensures that even complex, multi-step agent reasoning doesn't saturate the server thread, maximizing system throughput.
 
-## 5. Structured Data Extraction
-To provide a clean UX, the agent follows a mandatory output structure:
-1. **Classical Plan**: The "safe" landmarks.
-2. **Off-beat Plan**: The "hidden" gems.
-This ensures the user always gets a diverse set of options.
+## 5. Dynamic Service Authentication (BYOK)
+GetSetGoAI implements a "Bring Your Own Key" (BYOK) model for professional scalability.
+- **Runtime Injection**: API keys provided by the user in the UI are passed into the LangGraph `config`.
+- **Stateless Auth**: The tools extract these keys dynamically during execution. The keys exist only in the user's session memory, ensuring privacy and zero cost for the host.
 
 ---
 
-### Workflow Visualization
+### Workflow Visualization (Non-Blocking)
 ```mermaid
 graph TD
     START --> agent["Agent (Thinking)"]

@@ -1,13 +1,7 @@
-import os
-from typing import List, Any,Dict, Optional
-from dotenv import load_dotenv
-from utils.weather_info import WeatherInfoTool
-from langchain.tools import tool
-
-
+from langchain_core.runnables import RunnableConfig
 
 class WeatherInfoTool():
-    def __init__(self,):
+    def __init__(self):
         load_dotenv()
         self.api_key = os.environ.get("WEATHER_API_KEY")
         from utils.weather_info import WeatherInfoTool as WeatherService
@@ -18,9 +12,12 @@ class WeatherInfoTool():
         "Setup all the tools for the agent"
         
         @tool
-        def get_current_weather(city: str) -> str:
+        async def get_current_weather(city: str, config: RunnableConfig) -> str:
             """Get current weather conditions for a city."""
-            weather_data = self.weather_service.get_weather(city)
+            api_keys = config.get("configurable", {}).get("api_keys", {})
+            user_key = api_keys.get("weather_api_key")
+            
+            weather_data = await self.weather_service.get_weather(city, api_key=user_key)
             if weather_data and "main" in weather_data:
                 temp = weather_data['main'].get('temp', 'N/A')
                 desc = weather_data.get('weather', [{}])[0].get('description', 'N/A')
@@ -31,9 +28,12 @@ class WeatherInfoTool():
             return f"Couldn't fetch current weather for {city}."
 
         @tool
-        def get_weather_forecast(city: str) -> str:
+        async def get_weather_forecast(city: str, config: RunnableConfig) -> str:
             """Get a summarized 5-day weather forecast for a city."""
-            forecast_data = self.weather_service.get_weather_forecast(city)
+            api_keys = config.get("configurable", {}).get("api_keys", {})
+            user_key = api_keys.get("weather_api_key")
+
+            forecast_data = await self.weather_service.get_weather_forecast(city, api_key=user_key)
             if forecast_data and 'list' in forecast_data:
                 # Group by day and get min/max
                 daily_stats = {}

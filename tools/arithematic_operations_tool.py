@@ -2,7 +2,6 @@ import os
 from dotenv import load_dotenv
 from langchain.tools import tool
 load_dotenv()
-from langchain_community.utilities import AlphaVantageAPIWrapper
 
 class ArithematicOperationsTool():
     def __init__(self):
@@ -10,7 +9,7 @@ class ArithematicOperationsTool():
         
     def _setup_tools(self):
         @tool
-        def multiply(a: float, b: float) -> float:
+        async def multiply(a: float, b: float) -> float:
             """
             Multiply two numbers together.
 
@@ -24,7 +23,7 @@ class ArithematicOperationsTool():
             return a * b
             
         @tool
-        def add(a: float, b: float) -> float:
+        async def add(a: float, b: float) -> float:
             """
             Add two numbers together.
 
@@ -38,7 +37,7 @@ class ArithematicOperationsTool():
             return a + b
             
         @tool
-        def subtract(a: float, b: float) -> float:
+        async def subtract(a: float, b: float) -> float:
             """
             Subtract two numbers.
 
@@ -52,7 +51,7 @@ class ArithematicOperationsTool():
             return a - b
             
         @tool
-        def divide(a: float, b: float) -> float:
+        async def divide(a: float, b: float) -> float:
             """
             Divide two numbers.
 

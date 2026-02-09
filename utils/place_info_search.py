@@ -1,5 +1,6 @@
 import os
 import json
+import asyncio
 from typing import Any, Dict
 try:
     from langchain_community.utilities import SerpAPIWrapper
@@ -31,9 +32,19 @@ class SerpAPISearchTool:
             raise ImportError("SerpAPI not available. Install with: pip install google-search-results")
         self.search_wrapper = SerpAPIWrapper(serpapi_api_key=api_key)
 
-    def _format_serp_results(self, search_query: str) -> str:
+    async def _format_serp_results(self, search_query: str, api_key: str = None) -> str:
         """Helper to run search and format results with links"""
-        results = self.search_wrapper.results(search_query)
+        # Use provided api_key or fall back to the one from __init__
+        effective_key = api_key or getattr(self.search_wrapper, "serpapi_api_key", None)
+        
+        # If we have a custom key, we need a separate wrapper or local call
+        if api_key and SerpAPIWrapper:
+            wrapper = SerpAPIWrapper(serpapi_api_key=api_key)
+        else:
+            wrapper = self.search_wrapper
+
+        # SerpAPIWrapper.results is blocking, so we run it in a thread
+        results = await asyncio.to_thread(wrapper.results, search_query)
         formatted_results = []
         
         # Check organic results
@@ -53,7 +64,7 @@ class SerpAPISearchTool:
                 formatted_results.append(f"{title}: {link}")
 
         if not formatted_results:
-             return self.search_wrapper.run(search_query) # Fallback to string
+             return await asyncio.to_thread(wrapper.run, search_query) # Fallback to string
         
         # Sort to prioritize certain high-quality domains like Tripadvisor, Zomato, Official sites
         # but for now, just filtering junk out is enough.
@@ -64,51 +75,41 @@ class SerpAPISearchTool:
             
         return "\n".join(clean_results[:5])
 
-    def search_attractions(self, place: str) -> str:
+    async def search_attractions(self, place: str, api_key: str = None) -> str:
         """
         Search for top attractions in and around a given place.
         """
-        return self._format_serp_results(f"official attractions and things to do in {place} with website links")
+        return await self._format_serp_results(f"official attractions and things to do in {place} with website links", api_key=api_key)
 
-    def search_restaurants(self, place: str) -> str:
+    async def search_restaurants(self, place: str, api_key: str = None) -> str:
         """
         Search for top restaurants in and around a given place.
         """
-        return self._format_serp_results(f"top restaurants in {place} official website or tripadvisor zomato")
+        return await self._format_serp_results(f"top restaurants in {place} official website or tripadvisor zomato", api_key=api_key)
 
-    def search_hotels(self, place: str) -> str:
+    async def search_hotels(self, place: str, api_key: str = None) -> str:
         """
         Search for top hotels in and around a given place.
         """
-        return self._format_serp_results(f"best hotels in {place} official website or booking.com tripadvisor")
+        return await self._format_serp_results(f"best hotels in {place} official website or booking.com tripadvisor", api_key=api_key)
 
-    def search_activity(self, place: str) -> str:
+    async def search_activity(self, place: str, api_key: str = None) -> str:
         """
         Search for top activities in and around a given place.
-
-        Args:
-            place (str): Location to search around.
-
-        Returns:
-            str: Result of the search.
         """
-        return self.search_wrapper.run(f"top activities in and around {place}")
+        wrapper = SerpAPIWrapper(serpapi_api_key=api_key) if api_key and SerpAPIWrapper else self.search_wrapper
+        return await asyncio.to_thread(wrapper.run, f"top activities in and around {place}")
 
-    def search_transportation(self, place: str) -> str:
+    async def search_transportation(self, place: str, api_key: str = None) -> str:
         """
         Searches for available modes of transportation in and around a given place.
-
-        Args:
-            place (str): Location to search around.
-
-        Returns:
-            str: Result of the search.
         """
-        return self.search_wrapper.run(f"modes of transportation in and around {place}")
+        wrapper = SerpAPIWrapper(serpapi_api_key=api_key) if api_key and SerpAPIWrapper else self.search_wrapper
+        return await asyncio.to_thread(wrapper.run, f"modes of transportation in and around {place}")
+
 class TavilySearchTool:
-    def __init__(self, api_key : str):
-        from langchain_tavily import TavilySearch
-        self.tavily_wrapper = TavilySearch(tavily_api_key=api_key)
+    def __init__(self, api_key: str):
+        self.api_key = api_key
     
     def _format_tavily_results(self, result: Any) -> str:
         """Helper to format Tavily results into Name: URL string"""
@@ -131,42 +132,42 @@ class TavilySearchTool:
                 return "\n".join(clean_formatted[:5]) if clean_formatted else "\n".join(formatted[:2])
         return str(result)
 
-    def search_attractions(self, place: str)->str:
+    async def search_attractions(self, place: str, api_key: str = None) -> str:
         """
         Search for top attractions in and around a given place.
         """
-        tavily_tool = TavilySearch(topic="general", search_depth='advanced')
-        result = tavily_tool.invoke({"query": f"verified top attractions and landmarks in {place} official website"})
+        tavily_tool = TavilySearch(tavily_api_key=api_key or self.api_key, topic="general", search_depth='advanced')
+        result = await tavily_tool.ainvoke({"query": f"verified top attractions and landmarks in {place} official website"})
         return self._format_tavily_results(result)
 
-    def tavily_search_restaurants(self, place: str)->str:
+    async def tavily_search_restaurants(self, place: str, api_key: str = None) -> str:
         """
         Search for top restaurants in and around a given place.
         """
-        tavily_tool = TavilySearch(topic="general", search_depth='advanced')
-        result = tavily_tool.invoke({"query": f"top rated restaurants in {place} official website zomato tripadvisor"})
+        tavily_tool = TavilySearch(tavily_api_key=api_key or self.api_key, topic="general", search_depth='advanced')
+        result = await tavily_tool.ainvoke({"query": f"top rated restaurants in {place} official website zomato tripadvisor"})
         return self._format_tavily_results(result)
 
-    def tavily_search_activity(self, place :str)->str:
+    async def tavily_search_activity(self, place: str, api_key: str = None) -> str:
         """
         Search for top activities in and around a given place.
         """
-        tavily_tool = TavilySearch(topic="general", search_depth='advanced')
-        result = tavily_tool.invoke({"query": f"tourist activities and experiences in {place} verified links"})
+        tavily_tool = TavilySearch(tavily_api_key=api_key or self.api_key, topic="general", search_depth='advanced')
+        result = await tavily_tool.ainvoke({"query": f"tourist activities and experiences in {place} verified links"})
         return self._format_tavily_results(result)
     
-    def tavily_search_transportation(self, place :str)->str:
+    async def tavily_search_transportation(self, place: str, api_key: str = None) -> str:
         """
         Searches for available modes of transportation in and around a given place.
         """
-        tavily_tool = TavilySearch(topic="general", search_depth='advanced')
-        result = tavily_tool.invoke({"query": f"official public transport and taxi guide for {place}"})
+        tavily_tool = TavilySearch(tavily_api_key=api_key or self.api_key, topic="general", search_depth='advanced')
+        result = await tavily_tool.ainvoke({"query": f"official public transport and taxi guide for {place}"})
         return self._format_tavily_results(result)
 
-    def tavily_search_hotels(self, place: str) -> str:
+    async def tavily_search_hotels(self, place: str, api_key: str = None) -> str:
         """
         Search for top hotels in and around a given place.
         """
-        tavily_tool = TavilySearch(topic="general", search_depth='advanced')
-        result = tavily_tool.invoke({"query": f"top luxury and boutique hotels in {place} official website booking.com"})
+        tavily_tool = TavilySearch(tavily_api_key=api_key or self.api_key, topic="general", search_depth='advanced')
+        result = await tavily_tool.ainvoke({"query": f"top luxury and boutique hotels in {place} official website booking.com"})
         return self._format_tavily_results(result)
