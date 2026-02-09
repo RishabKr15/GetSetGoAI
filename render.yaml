@@ -10,19 +10,19 @@ services:
         value: google
       - key: GOOGLE_API_KEY
         sync: false
-        description: "Your Google AI Studio API Key (Get it: https://aistudio.google.com/)"
+        description: "Default Google AI Key. LEAVE BLANK to use 'Bring Your Own Key' in the app UI."
       - key: TAVILY_API_KEY
         sync: false
-        description: "Your Tavily Search API Key (Get it: https://tavily.com/)"
+        description: "Default Tavily Key. LEAVE BLANK to use 'Bring Your Own Key' in the app UI."
       - key: WEATHER_API_KEY
         sync: false
-        description: "Your OpenWeatherMap API Key (Get it: https://openweathermap.org/api)"
+        description: "Default Weather Key. LEAVE BLANK to use 'Bring Your Own Key' in the app UI."
       - key: EXCHANGE_API_KEY
         sync: false
-        description: "Your ExchangeRate-API Key (Get it: https://www.exchangerate-api.com/)"
+        description: "Default Currency Key. LEAVE BLANK to use 'Bring Your Own Key' in the app UI."
       - key: SERPAPI_API_KEY
         sync: false
-        description: "Optional: Your SerpAPI Key for better search (Get it: https://serpapi.com/)"
+        description: "Optional: Default SerpAPI Key. LEAVE BLANK for BYOK."
 
   # --- Frontend: Streamlit Service ---
   - type: web
@@ -32,10 +32,4 @@ services:
     startCommand: streamlit run streamlit_app.py --server.port 8501 --server.address 0.0.0.0
     envVars:
       - key: BACKEND_URL
-        fromService:
-          name: getsetgo-backend
-          type: web
-          property: host
-        # Note: Render usually uses internal network for same-blueprint services.
-        # But for Streamlit (client-side calls), we often need the external URL.
-        # If Streamlit calls Backend via 'requests', 'host' works.
+        value: http://getsetgo-backend:8000

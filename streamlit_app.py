@@ -91,11 +91,30 @@ with st.sidebar:
     st.subheader("🔑 API Configuration")
     st.info("Enter your own keys to run the concierge under your provider account.")
     
-    google_key = st.text_input("Google AI (Gemini) Key", type="password", help="Get it: https://aistudio.google.com/")
-    tavily_key = st.text_input("Tavily Search Key", type="password", help="Get it: https://tavily.com/")
-    weather_key = st.text_input("OpenWeatherMap Key", type="password", help="Get it: https://openweathermap.org/api")
-    exchange_key = st.text_input("ExchangeRate-API Key", type="password", help="Get it: https://www.exchangerate-api.com/")
-    serp_key = st.text_input("SerpAPI Key (Optional)", type="password", help="Get it: https://serpapi.com/")
+    st.markdown('<div style="font-size: 0.85rem; margin-bottom: -15px;">'
+                '<a href="https://aistudio.google.com/" target="_blank">Get Google Key</a>'
+                '</div>', unsafe_allow_html=True)
+    google_key = st.text_input("Google AI (Gemini) Key", type="password")
+    
+    st.markdown('<div style="font-size: 0.85rem; margin-bottom: -15px;">'
+                '<a href="https://tavily.com/" target="_blank">Get Tavily Key</a>'
+                '</div>', unsafe_allow_html=True)
+    tavily_key = st.text_input("Tavily Search Key", type="password")
+    
+    st.markdown('<div style="font-size: 0.85rem; margin-bottom: -15px;">'
+                '<a href="https://openweathermap.org/api" target="_blank">Get Weather Key</a>'
+                '</div>', unsafe_allow_html=True)
+    weather_key = st.text_input("OpenWeatherMap Key", type="password")
+    
+    st.markdown('<div style="font-size: 0.85rem; margin-bottom: -15px;">'
+                '<a href="https://www.exchangerate-api.com/" target="_blank">Get Currency Key</a>'
+                '</div>', unsafe_allow_html=True)
+    exchange_key = st.text_input("ExchangeRate-API Key", type="password")
+    
+    st.markdown('<div style="font-size: 0.85rem; margin-bottom: -15px;">'
+                '<a href="https://serpapi.com/" target="_blank">Get SerpAPI Key</a>'
+                '</div>', unsafe_allow_html=True)
+    serp_key = st.text_input("SerpAPI Key (Optional)", type="password")
 
     st.session_state["google_key"] = google_key
     st.session_state["tavily_key"] = tavily_key
