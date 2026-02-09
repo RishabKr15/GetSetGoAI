@@ -1,0 +1,36 @@
+[project]
+name = "GetSetGoAI"
+version = "0.1.0"
+description = "Elite AI Travel Concierge"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "langchain",
+    "langchain-community",
+    "langchain-experimental",
+    "fastapi",
+    "python-dotenv",
+    "streamlit",
+    "uvicorn",
+    "pydantic",
+    "httpx",
+    "requests",
+    "langchain-google-community",
+    "langchain-tavily",
+    "langchain-openai",
+    "langchain-deepseek",
+    "langgraph",
+    "langchain-mistralai",
+    "google-search-results",
+    "google-cloud-aiplatform",
+    "google-auth",
+    "langchain-google-genai",
+    "google-genai",
+    "reportlab",
+    "langchain-groq",
+    "gunicorn",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
