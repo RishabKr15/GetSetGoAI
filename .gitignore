@@ -17,3 +17,18 @@ api_check.py
 server_debug.log
 graph.png
 *.log
+
+# Documentation
+docs/*
+!docs/PROJECT_EXPLANATION.md
+
+# Media and Assets
+!GetSetGoAI.png
+*.png
+*.pdf
+*.csv
+*.webp
+
+# Docker
+docker/
+docker-compose.yml
