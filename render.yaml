@@ -1,9 +1,8 @@
 version: 1
 services:
   # --- Backend: FastAPI Service ---
-  - id: backend_v3
-    type: web
-    name: getsetgo-backend-v3
+  - type: web
+    name: getsetgo-backend-v4
     env: python
     region: oregon
     plan: free
@@ -22,9 +21,8 @@ services:
         sync: false
 
   # --- Frontend: Streamlit Service ---
-  - id: frontend_v3
-    type: web
-    name: getsetgo-frontend-v3
+  - type: web
+    name: getsetgo-frontend-v4
     env: python
     region: oregon
     plan: free
@@ -32,4 +30,4 @@ services:
     startCommand: .venv/bin/python -m streamlit run streamlit_app.py --server.port 10000 --server.address 0.0.0.0
     envVars:
       - key: BACKEND_URL
-        value: http://getsetgo-backend-v3:10000
+        value: http://getsetgo-backend-v4:10000
