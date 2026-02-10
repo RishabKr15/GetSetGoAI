@@ -141,6 +141,10 @@ async def query_travel_agent(query: QueryRequest):
         raise e
 
 # PDF and Test endpoints
+@app.get("/")
+def root_health_check():
+    return {"status": "alive", "service": "GetSetGoAI-Backend"}
+
 @app.get("/test")
 def test_endpoint():
     return {"status": "ok"}
