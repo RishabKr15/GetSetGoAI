@@ -61,7 +61,10 @@ class ModelLoader(BaseModel):
             if self.model_provider == "groq":
                  api_key = api_key or os.getenv("GROQ_API_KEY")
                  if not api_key:
-                     raise ValueError("GROQ_API_KEY not found in environment variables.")
+                     print("⚠️ GROQ_API_KEY not found. Server starting in BYOK mode only.")
+                     # Return a dummy or None; the agent_function must handle this.
+                     return None
+                     
                  from langchain_groq import ChatGroq
                  return ChatGroq(
                      model=model_name, 

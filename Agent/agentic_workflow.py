@@ -42,7 +42,11 @@ class GraphBuilder():
         ])
         
         # Using parallel_tool_calls=False for higher reliability with Groq/Llama
-        self.llm_with_tools = self.llm.bind_tools(self.tools, parallel_tool_calls=False)
+        if self.llm:
+            self.llm_with_tools = self.llm.bind_tools(self.tools, parallel_tool_calls=False)
+        else:
+            self.llm_with_tools = None
+            logger.warning("GraphBuilder initialized without a default LLM. Requests must provide their own API keys.")
         self.system_prompt = SYSTEM_PROMPT
 
     async def agent_function(self, state: AgentState, config: RunnableConfig) -> Dict[str, Any]:
@@ -72,6 +76,9 @@ class GraphBuilder():
             
             # Use specific LLM if key provided, otherwise use default
             current_llm = self.llm_with_tools
+            
+            if not current_llm and not (google_key or groq_key or deepseek_key):
+                 raise ValueError("No API key provided. Please enter your API key in the configuration sidebar.")
             
             target_key = None
             if self.model_loader.model_provider == "google" and google_key:
