@@ -32,3 +32,6 @@ docs/*
 # Docker
 docker/
 docker-compose.yml
+
+# Personal docs
+ELITE_INTERVIEW_GUIDE.md

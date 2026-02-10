@@ -1,11 +1,12 @@
 # ✈️ GetSetGoAI: Your Agentic Travel Concierge
 
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=render)](https://getsetgo-frontend-v4-km3t.onrender.com/)
+
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/RishabKr15/GetSetGoAI)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![LangGraph](https://img.shields.io/badge/Orchestrator-LangGraph-orange.svg)](https://github.com/langchain-ai/langgraph)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 [![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B.svg)](https://streamlit.io/)
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/RishabKr15/GetSetGoAI)
 
 Experience the future of travel planning. **GetSetGoAI** is a premium, multi-agentic travel assistant that researches, plans, and budgets your perfect trip using real-time data.
 
