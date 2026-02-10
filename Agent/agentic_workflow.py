@@ -64,15 +64,28 @@ class GraphBuilder():
             messages.append(msg)
 
         try:
-            # BYOK: Check for custom Google key
+            # BYOK: Check for custom LLM keys
             api_keys = config.get("configurable", {}).get("api_keys", {})
             google_key = api_keys.get("google_api_key")
+            groq_key = api_keys.get("groq_api_key")
+            deepseek_key = api_keys.get("deepseek_api_key")
             
             # Use specific LLM if key provided, otherwise use default
             current_llm = self.llm_with_tools
-            if google_key:
+            
+            target_key = None
+            if self.model_loader.model_provider == "google" and google_key:
+                target_key = google_key
                 logger.info("Using user-provided Google API key for this request")
-                custom_llm = self.model_loader.load_llm(api_key=google_key)
+            elif self.model_loader.model_provider == "groq" and groq_key:
+                target_key = groq_key
+                logger.info("Using user-provided Groq API key for this request")
+            elif self.model_loader.model_provider == "deepseek" and deepseek_key:
+                target_key = deepseek_key
+                logger.info("Using user-provided DeepSeek API key for this request")
+
+            if target_key:
+                custom_llm = self.model_loader.load_llm(api_key=target_key)
                 current_llm = custom_llm.bind_tools(self.tools, parallel_tool_calls=False)
 
             # Invoke LLM asynchronously

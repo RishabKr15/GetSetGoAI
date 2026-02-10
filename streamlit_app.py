@@ -92,9 +92,19 @@ with st.sidebar:
     st.info("Enter your own keys to run the concierge under your provider account.")
     
     st.markdown('<div style="font-size: 0.85rem; margin-bottom: -15px;">'
+                '<a href="https://console.groq.com/keys" target="_blank">Get Groq Key</a>'
+                '</div>', unsafe_allow_html=True)
+    groq_key = st.text_input("Groq API Key", type="password")
+
+    st.markdown('<div style="font-size: 0.85rem; margin-bottom: -15px;">'
                 '<a href="https://aistudio.google.com/" target="_blank">Get Google Key</a>'
                 '</div>', unsafe_allow_html=True)
     google_key = st.text_input("Google AI (Gemini) Key", type="password")
+
+    st.markdown('<div style="font-size: 0.85rem; margin-bottom: -15px;">'
+                '<a href="https://www.deepseek.com/" target="_blank">Get DeepSeek Key</a>'
+                '</div>', unsafe_allow_html=True)
+    deepseek_key = st.text_input("DeepSeek API Key", type="password")
     
     st.markdown('<div style="font-size: 0.85rem; margin-bottom: -15px;">'
                 '<a href="https://tavily.com/" target="_blank">Get Tavily Key</a>'
@@ -116,7 +126,9 @@ with st.sidebar:
                 '</div>', unsafe_allow_html=True)
     serp_key = st.text_input("SerpAPI Key (Optional)", type="password")
 
+    st.session_state["groq_key"] = groq_key
     st.session_state["google_key"] = google_key
+    st.session_state["deepseek_key"] = deepseek_key
     st.session_state["tavily_key"] = tavily_key
     st.session_state["weather_key"] = weather_key
     st.session_state["exchange_key"] = exchange_key
@@ -182,6 +194,8 @@ if prompt := st.chat_input("E.g., Plan a 5-day honeymoon in the Maldives"):
                     "thread_id": st.session_state.get("thread_id", "default"),
                     # Pass user-provided keys
                     "google_api_key": st.session_state.get("google_key"),
+                    "groq_api_key": st.session_state.get("groq_key"),
+                    "deepseek_api_key": st.session_state.get("deepseek_key"),
                     "tavily_api_key": st.session_state.get("tavily_key"),
                     "weather_api_key": st.session_state.get("weather_key"),
                     "exchange_api_key": st.session_state.get("exchange_key"),

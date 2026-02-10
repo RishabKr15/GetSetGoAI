@@ -47,6 +47,8 @@ class QueryRequest(BaseModel):
     thread_id: Optional[str] = "default"
     # User-provided API keys (BYOK)
     google_api_key: Optional[str] = None
+    groq_api_key: Optional[str] = None
+    deepseek_api_key: Optional[str] = None
     tavily_api_key: Optional[str] = None
     weather_api_key: Optional[str] = None
     exchange_api_key: Optional[str] = None
@@ -74,6 +76,8 @@ async def query_travel_agent(query: QueryRequest):
         # BYOK: Collect keys from request
         api_keys = {
             "google_api_key": query.google_api_key,
+            "groq_api_key": query.groq_api_key,
+            "deepseek_api_key": query.deepseek_api_key,
             "tavily_api_key": query.tavily_api_key,
             "weather_api_key": query.weather_api_key,
             "exchange_api_key": query.exchange_api_key,
