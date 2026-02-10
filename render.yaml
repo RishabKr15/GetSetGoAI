@@ -31,4 +31,4 @@ services:
     startCommand: .venv/bin/python -m streamlit run streamlit_app.py --server.port 10000 --server.address 0.0.0.0
     envVars:
       - key: BACKEND_URL
-        value: http://getsetgo-backend-v4:10000
+        value: https://getsetgo-backend-v4-km3t.onrender.com
