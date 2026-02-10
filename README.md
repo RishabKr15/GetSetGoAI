@@ -73,7 +73,7 @@ GetSetGoAI follows a modular, tool-centric design:
 - **UI (`streamlit_app.py`)**: A modern, glassmorphic chat interface for high-end user experience.
 - **API (`main.py`)**: A high-performance, non-blocking RESTful gateway.
 
-For a deeper dive into how the agent thinks, see [Concepts Guide](docs/concepts.md).
+For a deeper dive into how the agent thinks and the underlying LangGraph architecture, see the [Technical Explanation Guide](technical_explanation.md).
 
 ---
 
